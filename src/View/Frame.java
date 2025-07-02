@@ -255,8 +255,9 @@ public class Frame extends javax.swing.JFrame {
     public void registerNav(){
         frameView.show(Container, "registerPnl");
     }
-    
-    public void registerAction(String username, String password, String confpass){
+
+    // Removed confirmation of password.
+    public void registerAction(String username, String password){
         main.sqlite.addUser(username, password);
     }
 
