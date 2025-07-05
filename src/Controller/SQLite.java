@@ -4,11 +4,8 @@ import Model.History;
 import Model.Logs;
 import Model.Product;
 import Model.User;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+
+import java.sql.*;
 import java.util.ArrayList;
 
 public class SQLite {
@@ -318,20 +315,33 @@ public class SQLite {
     }
 
     public User authenticateUser(String username, char[] password) {
-        String sql = "SELECT id, username, password, role, locked FROM users WHERE username = ?";
+        String selectSql = "SELECT id, username, password, role, locked, failed_attempts FROM users WHERE username = ?";
+        String updateFailedSql = "UPDATE users SET failed_attempts = failed_attempts + 1 WHERE username = ?";
+        String resetFailedSql = "UPDATE users SET failed_attempts = 0 WHERE username = ?";
+        String lockSql = "UPDATE users SET locked = 1 WHERE username = ?";
+        int maxAttempts = 5; // Lock after 5 failed attempts
+
         try (Connection conn = DriverManager.getConnection(driverURL);
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(selectSql)) {
 
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    String storedHash = rs.getString("password");
                     int locked = rs.getInt("locked");
+                    int failedAttempts = rs.getInt("failed_attempts");
+                    String storedHash = rs.getString("password");
+
                     if (locked != 0) {
-                        throw new IllegalStateException("Account is locked");
+                        // Account is locked: let this propagate to the GUI
+                        throw new IllegalStateException("Account is locked.");
                     }
+
                     if (PasswordUtils.verifyPassword(password, storedHash)) {
-                        // Optionally, construct and return the full User object
+                        // Successful login, reset failed_attempts
+                        try (PreparedStatement resetStmt = conn.prepareStatement(resetFailedSql)) {
+                            resetStmt.setString(1, username);
+                            resetStmt.executeUpdate();
+                        }
                         return new User(
                                 rs.getInt("id"),
                                 rs.getString("username"),
@@ -339,12 +349,43 @@ public class SQLite {
                                 rs.getInt("role"),
                                 locked
                         );
+                    } else {
+                        // Wrong password: increment failed_attempts
+                        failedAttempts++;
+                        try (PreparedStatement failStmt = conn.prepareStatement(updateFailedSql)) {
+                            failStmt.setString(1, username);
+                            failStmt.executeUpdate();
+                        }
+
+                        // Rate limiting: add a delay to slow brute force attacks
+                        try {
+                            Thread.sleep(1000); // 1 second delay
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+
+                        // Lock account if too many failed attempts
+                        if (failedAttempts >= maxAttempts) {
+                            try (PreparedStatement lockStmt = conn.prepareStatement(lockSql)) {
+                                lockStmt.setString(1, username);
+                                lockStmt.executeUpdate();
+                            }
+                            // Let this propagate as well
+                            throw new IllegalStateException("Account locked due to too many failed attempts.");
+                        }
                     }
                 }
             }
+        } catch (IllegalStateException ise) {
+            // Let account lock exceptions propagate so UI can show the correct message!
+            throw ise;
         } catch (Exception ex) {
+            // For all other errors, print the stack trace (for debugging)
             ex.printStackTrace();
         }
-        return null; // authentication failed
+        return null; // authentication failed (invalid username/password)
     }
+
+
+
 }
