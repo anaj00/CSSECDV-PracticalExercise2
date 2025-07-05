@@ -196,8 +196,7 @@ public class SQLite {
             System.out.print(ex);
         }
     }
-    
-    
+
     public ArrayList<History> getHistory(){
         String sql = "SELECT id, username, name, stock, timestamp FROM history";
         ArrayList<History> histories = new ArrayList<History>();
@@ -316,5 +315,36 @@ public class SQLite {
             System.out.print(ex);
         }
         return product;
+    }
+
+    public User authenticateUser(String username, char[] password) {
+        String sql = "SELECT id, username, password, role, locked FROM users WHERE username = ?";
+        try (Connection conn = DriverManager.getConnection(driverURL);
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    int locked = rs.getInt("locked");
+                    if (locked != 0) {
+                        throw new IllegalStateException("Account is locked");
+                    }
+                    if (PasswordUtils.verifyPassword(password, storedHash)) {
+                        // Optionally, construct and return the full User object
+                        return new User(
+                                rs.getInt("id"),
+                                rs.getString("username"),
+                                storedHash,
+                                rs.getInt("role"),
+                                locked
+                        );
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null; // authentication failed
     }
 }

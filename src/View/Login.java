@@ -1,6 +1,9 @@
 
 package View;
 
+import javax.swing.*;
+import Model.User;
+
 public class Login extends javax.swing.JPanel {
 
     public Frame frame;
@@ -83,7 +86,43 @@ public class Login extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
-        frame.mainNav();
+        String username = usernameFld.getText();
+        char[] password = passwordFld.getPassword();
+
+        // Input check
+        if (username.trim().isEmpty() || password.length == 0) {
+            JOptionPane.showMessageDialog(this, "Please enter username and password.",
+                    "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Authenticate
+        try {
+            String safeUsername = Controller.ValidationUtils.sanitizeUsername(username);
+            Model.User user = frame.main.sqlite.authenticateUser(safeUsername, password);
+            java.util.Arrays.fill(password, '\0'); // Clear password for security
+
+            if (user != null){
+                // Successful login
+                JOptionPane.showMessageDialog(this, "Login successful! Welcome " + username);
+                frame.setCurrentUser(user);
+                frame.mainNav();
+            } else {
+                // Login failed
+                JOptionPane.showMessageDialog(this, "Invalid username or password.",
+                        "Login Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalStateException ise) {
+            JOptionPane.showMessageDialog(this, ise.getMessage(),
+                    "Account Locked", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException iae) {
+            JOptionPane.showMessageDialog(this, iae.getMessage(),
+                    "Login Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Unexpected error during login.",
+                    "Login Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_loginBtnActionPerformed
 
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed

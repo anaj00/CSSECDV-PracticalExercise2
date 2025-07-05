@@ -4,9 +4,18 @@ import Controller.Main;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 public class Frame extends javax.swing.JFrame {
+    private Model.User currentUser;
+
+    public void setCurrentUser(Model.User user) {
+        this.currentUser = user;
+    }
+
+    public Model.User getCurrentUser() {
+        return this.currentUser;
+    }
 
     public Frame() {
         initComponents();
@@ -258,8 +267,14 @@ public class Frame extends javax.swing.JFrame {
 
     // Removed confirmation of password.
     public void registerAction(String username, String password){
-        main.sqlite.addUser(username, password);
+        try {
+            main.sqlite.addUser(username, password, 2);
+            JOptionPane.showMessageDialog(this, "Registration successful!");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Container;
