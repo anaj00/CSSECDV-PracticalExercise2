@@ -31,7 +31,10 @@ public final class PasswordUtils {
 
         byte[] hash = pbkdf2(password, salt, ITERATIONS);
         try {
+            // Save as: pbkdf2_sha256$120000$saltBase64$hashBase64
             return String.join("$",
+                    "pbkdf2_sha256",
+                    String.valueOf(ITERATIONS),
                     B64ENC.encodeToString(salt),
                     B64ENC.encodeToString(hash));
         } finally {
@@ -39,6 +42,7 @@ public final class PasswordUtils {
             wipe(password);
         }
     }
+
 
     /** Verifies a password against the stored record. */
     public static boolean verifyPassword(char[] candidate, String stored) {
