@@ -11,7 +11,7 @@ public final class ValidationUtils {
     public static String sanitizeUsername(String raw) throws IllegalArgumentException {
         String trimmed = raw == null ? "" : raw.trim();
         if (!SAFE_USERNAME.matcher(trimmed).matches())
-            throw new IllegalArgumentException("Invalid username!");
+            throw new IllegalArgumentException("Username must be 4-30 characters, letters, numbers, or underscores only.");
         return trimmed;
     }
 
@@ -24,7 +24,7 @@ public final class ValidationUtils {
         String pwStr = new String(pwd);           // temporary view for regex
         try {
             if (!STRONG_PWD.matcher(pwStr).matches()) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Password must be at least 12 characters, include an uppercase letter and a special character.");
             }
         } finally {
             pwStr = null;                         // drop reference; GC can reclaim
