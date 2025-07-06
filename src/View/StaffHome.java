@@ -6,6 +6,7 @@
 package View;
 
 import Controller.SQLite;
+import Controller.RoleManager;
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -45,11 +46,19 @@ public class StaffHome extends javax.swing.JPanel {
         Content.add(mgmtProduct, "mgmtProduct");
         Content.add(mgmtLogs, "mgmtLogs");
         
-//        UNCOMMENT TO DISABLE BUTTONS
-//        historyBtn.setVisible(false);
-//        usersBtn.setVisible(false);
-//        productsBtn.setVisible(false);
-//        logsBtn.setVisible(false);
+        // manage button visibility depending on role
+        configureStaffRoleAccess();
+    }
+    
+     // manage button visibility depending on role and their access permissions
+    private void configureStaffRoleAccess() {
+        usersBtn.setVisible(RoleManager.canManageUsers(RoleManager.STAFF));
+        productsBtn.setVisible(RoleManager.canViewProducts(RoleManager.STAFF));
+        productsBtn.setText("PRODUCTS CATALOG");
+        historyBtn.setVisible(RoleManager.canViewHistory(RoleManager.STAFF));
+        historyBtn.setText("SALES HISTORY");
+        logsBtn.setVisible(RoleManager.canViewLogs(RoleManager.STAFF));
+        logsBtn.setText("OPERATIONAL LOGS");
     }
     
     public void showPnl(String panelName){

@@ -83,7 +83,8 @@ public class SQLite {
             + " username TEXT NOT NULL UNIQUE,\n"
             + " password TEXT NOT NULL,\n"
             + " role INTEGER DEFAULT 2,\n"
-            + " locked INTEGER DEFAULT 0\n"
+            + " locked INTEGER DEFAULT 0,\n"
+            + " failed_attempts INTEGER DEFAULT 0\n"
             + ");";
 
         try (Connection conn = DriverManager.getConnection(driverURL);
@@ -386,6 +387,75 @@ public class SQLite {
         return null; // authentication failed (invalid username/password)
     }
 
+    // Role-based data access methods
+    
+    public ArrayList<History> getHistoryByRole(String username, int userRole) {
+        ArrayList<History> histories = new ArrayList<History>();
+        String sql;
+        
+        if (RoleManager.canViewAllHistory(userRole)) {
+            sql = "SELECT * FROM history";
+        } else {
+            sql = "SELECT * FROM history WHERE username = '" + username + "'";
+        }
+        
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                histories.add(new History(rs.getInt("id"),
+                                        rs.getString("username"),
+                                        rs.getString("name"),
+                                        rs.getInt("stock"),
+                                        rs.getString("timestamp")));
+            }
+        } catch (Exception ex) {
+            System.out.print(ex);
+        }
+        return histories;
+    }
+    
+    public ArrayList<Logs> getLogsByRole(String username, int userRole) {
+        ArrayList<Logs> logs = new ArrayList<Logs>();
+        String sql;
+        
+        if (userRole >= RoleManager.ADMIN) {
+            sql = "SELECT * FROM logs";
+        } else if (userRole >= RoleManager.MANAGER) {
+            sql = "SELECT * FROM logs WHERE event IN ('NOTICE', 'WARNING', 'ERROR')";
+        } else if (userRole >= RoleManager.STAFF) {
+            sql = "SELECT * FROM logs WHERE event = 'NOTICE'";
+        } else {
+            return logs;
+        }
+        
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                logs.add(new Logs(rs.getInt("id"),
+                                rs.getString("event"),
+                                rs.getString("username"),
+                                rs.getString("desc"),
+                                rs.getString("timestamp")));
+            }
+        } catch (Exception ex) {
+            System.out.print(ex);
+        }
+        return logs;
+    }
+    
 
+    public ArrayList<User> getUsersByRole(int userRole) {
+        ArrayList<User> users = new ArrayList<User>();
+        
+        if (!RoleManager.canManageUsers(userRole)) {
+            return users; 
+        }
+        
+        return getUsers(); 
+    }
 
 }

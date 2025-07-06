@@ -1,6 +1,7 @@
 package View;
 
 import Controller.Main;
+import Controller.RoleManager;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -189,26 +190,44 @@ public class Frame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void adminBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminBtnActionPerformed
-        adminHomePnl.showPnl("home");
-        contentView.show(Content, "adminHomePnl");
+        if (currentUser != null && RoleManager.canAccess(currentUser.getRole(), RoleManager.ADMIN)) {
+            adminHomePnl.showPnl("home");
+            contentView.show(Content, "adminHomePnl");
+        } else {
+            showAccessDeniedMessage("Admin");
+        }
     }//GEN-LAST:event_adminBtnActionPerformed
 
     private void managerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_managerBtnActionPerformed
-        managerHomePnl.showPnl("home");
-        contentView.show(Content, "managerHomePnl");
+        if (currentUser != null && RoleManager.canAccess(currentUser.getRole(), RoleManager.MANAGER)) {
+            managerHomePnl.showPnl("home");
+            contentView.show(Content, "managerHomePnl");
+        } else {
+            showAccessDeniedMessage("Manager");
+        }
     }//GEN-LAST:event_managerBtnActionPerformed
 
     private void staffBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staffBtnActionPerformed
-        staffHomePnl.showPnl("home");
-        contentView.show(Content, "staffHomePnl");
+        if (currentUser != null && RoleManager.canAccess(currentUser.getRole(), RoleManager.STAFF)) {
+            staffHomePnl.showPnl("home");
+            contentView.show(Content, "staffHomePnl");
+        } else {
+            showAccessDeniedMessage("Staff");
+        }
     }//GEN-LAST:event_staffBtnActionPerformed
 
     private void clientBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clientBtnActionPerformed
-        clientHomePnl.showPnl("home");
-        contentView.show(Content, "clientHomePnl");
+        if (currentUser != null && RoleManager.canAccess(currentUser.getRole(), RoleManager.CLIENT)) {
+            clientHomePnl.showPnl("home");
+            contentView.show(Content, "clientHomePnl");
+        } else {
+            showAccessDeniedMessage("Client");
+        }
     }//GEN-LAST:event_clientBtnActionPerformed
 
     private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
+        currentUser = null; // Clear current user session
+        updateNavigationForRole(0); // Hide all navigation buttons
         frameView.show(Container, "loginPnl");
     }//GEN-LAST:event_logoutBtnActionPerformed
 
@@ -253,7 +272,61 @@ public class Frame extends javax.swing.JFrame {
         this.setVisible(true);
     }
     
-    public void mainNav(){
+    /**
+     * Update navigation buttons visibility based on user role
+     * Implements role-based access control for UI elements
+     */
+    public void updateNavigationForRole(int userRole) {
+        // Show buttons based on role permissions
+        adminBtn.setVisible(RoleManager.canAccess(userRole, RoleManager.ADMIN));
+        managerBtn.setVisible(RoleManager.canAccess(userRole, RoleManager.MANAGER));
+        staffBtn.setVisible(RoleManager.canAccess(userRole, RoleManager.STAFF));
+        clientBtn.setVisible(RoleManager.canAccess(userRole, RoleManager.CLIENT));
+        
+        if (currentUser != null) {
+            jLabel1.setText("SECURITY Svcs - " + RoleManager.getRoleName(userRole));
+        } else {
+            jLabel1.setText("SECURITY Svcs");
+        }
+        
+        showDefaultPanelForRole(userRole);
+    }
+    
+    private void showDefaultPanelForRole(int userRole) {
+        if (userRole >= RoleManager.ADMIN) {
+            adminHomePnl.showPnl("home");
+            contentView.show(Content, "adminHomePnl");
+        } else if (userRole >= RoleManager.MANAGER) {
+            managerHomePnl.showPnl("home");
+            contentView.show(Content, "managerHomePnl");
+        } else if (userRole >= RoleManager.STAFF) {
+            staffHomePnl.showPnl("home");
+            contentView.show(Content, "staffHomePnl");
+        } else if (userRole >= RoleManager.CLIENT) {
+            clientHomePnl.showPnl("home");
+            contentView.show(Content, "clientHomePnl");
+        }
+    }
+    
+    /**
+     * Show access denied message when user tries to access unauthorized area
+     */
+    private void showAccessDeniedMessage(String attemptedArea) {
+        String userRole = currentUser != null ? RoleManager.getRoleName(currentUser.getRole()) : "Unknown";
+        String message = String.format(
+            "Access Denied!\n\nYou (%s) do not have permission to access %s area.\n\nContact your administrator if you believe this is an error.",
+            userRole, attemptedArea
+        );
+        JOptionPane.showMessageDialog(this, message, "Access Denied", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    /**
+     * Enhanced main navigation with user role setup
+     */
+    public void mainNav() {
+        if (currentUser != null) {
+            updateNavigationForRole(currentUser.getRole());
+        }
         frameView.show(Container, "homePnl");
     }
     
@@ -274,7 +347,98 @@ public class Frame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
 
+    public void showUsersPanel() {
+        if (currentUser != null && RoleManager.canManageUsers(currentUser.getRole())) {
+            // Navigate to users management
+            if (currentUser.getRole() >= RoleManager.ADMIN) {
+                adminHomePnl.showPnl("users");
+                contentView.show(Content, "adminHomePnl");
+            }
+        } else {
+            showAccessDeniedMessage("Users Management");
+        }
+    }
+    
+ 
+    public void showProductsManagementPanel() {
+        if (currentUser != null && RoleManager.canManageProducts(currentUser.getRole())) {
+            // Navigate to products management
+            if (currentUser.getRole() >= RoleManager.ADMIN) {
+                adminHomePnl.showPnl("products");
+                contentView.show(Content, "adminHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.MANAGER) {
+                managerHomePnl.showPnl("products");
+                contentView.show(Content, "managerHomePnl");
+            }
+        } else {
+            showAccessDeniedMessage("Products Management");
+        }
+    }
+    
+
+    public void showProductsCatalogPanel() {
+        if (currentUser != null && RoleManager.canViewProducts(currentUser.getRole())) {
+            // Navigate to appropriate products view based on role
+            if (currentUser.getRole() >= RoleManager.ADMIN) {
+                adminHomePnl.showPnl("products");
+                contentView.show(Content, "adminHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.MANAGER) {
+                managerHomePnl.showPnl("products");
+                contentView.show(Content, "managerHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.STAFF) {
+                staffHomePnl.showPnl("products");
+                contentView.show(Content, "staffHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.CLIENT) {
+                clientHomePnl.showPnl("products");
+                contentView.show(Content, "clientHomePnl");
+            }
+        } else {
+            showAccessDeniedMessage("Products Catalog");
+        }
+    }
+    
+
+    public void showHistoryPanel() {
+        if (currentUser != null && RoleManager.canViewHistory(currentUser.getRole())) {
+            // Navigate to appropriate history view based on role
+            if (currentUser.getRole() >= RoleManager.ADMIN) {
+                adminHomePnl.showPnl("history");
+                contentView.show(Content, "adminHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.MANAGER) {
+                managerHomePnl.showPnl("history");
+                contentView.show(Content, "managerHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.STAFF) {
+                staffHomePnl.showPnl("history");
+                contentView.show(Content, "staffHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.CLIENT) {
+                clientHomePnl.showPnl("history");
+                contentView.show(Content, "clientHomePnl");
+            }
+        } else {
+            showAccessDeniedMessage("Purchase History");
+        }
+    }
+    
+
+    public void showLogsPanel() {
+        if (currentUser != null && RoleManager.canViewLogs(currentUser.getRole())) {
+            // Navigate to appropriate logs view based on role
+            if (currentUser.getRole() >= RoleManager.ADMIN) {
+                adminHomePnl.showPnl("logs");
+                contentView.show(Content, "adminHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.MANAGER) {
+                managerHomePnl.showPnl("logs");
+                contentView.show(Content, "managerHomePnl");
+            } else if (currentUser.getRole() >= RoleManager.STAFF) {
+                staffHomePnl.showPnl("logs");
+                contentView.show(Content, "staffHomePnl");
+            }
+        } else {
+            showAccessDeniedMessage("System Logs");
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Container;
