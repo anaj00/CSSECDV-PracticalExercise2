@@ -46,19 +46,17 @@ public class ClientHome extends javax.swing.JPanel {
         Content.add(mgmtProduct, "mgmtProduct");
         Content.add(mgmtLogs, "mgmtLogs");
         
-        // manage button visibility depending on role
-        configureStaffRoleAccess();
+        configureClientAccess();
     }
     
-     // manage button visibility depending on role and their access permissions
-    private void configureStaffRoleAccess() {
-        usersBtn.setVisible(RoleManager.canManageUsers(RoleManager.STAFF));
-        productsBtn.setVisible(RoleManager.canViewProducts(RoleManager.STAFF));
-        productsBtn.setText("PRODUCTS CATALOG");
-        historyBtn.setVisible(RoleManager.canViewHistory(RoleManager.STAFF));
-        historyBtn.setText("SALES HISTORY");
-        logsBtn.setVisible(RoleManager.canViewLogs(RoleManager.STAFF));
-        logsBtn.setText("OPERATIONAL LOGS");
+    private void configureClientAccess() {
+        usersBtn.setVisible(RoleManager.canManageUsers(RoleManager.CLIENT));
+        productsBtn.setVisible(RoleManager.canViewProducts(RoleManager.CLIENT));
+        productsBtn.setText("PRODUCT CATALOG");
+        historyBtn.setVisible(RoleManager.canViewHistory(RoleManager.CLIENT));
+        historyBtn.setText("PURCHASE HISTORY");
+        logsBtn.setVisible(RoleManager.canViewLogs(RoleManager.CLIENT));
+        logsBtn.setText("ACTIVITY LOGS");
     }
     
     public void showPnl(String panelName){

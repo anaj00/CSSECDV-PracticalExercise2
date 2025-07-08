@@ -387,6 +387,55 @@ public class SQLite {
         return null; // authentication failed (invalid username/password)
     }
 
+    public boolean changeUserPassword(String username, String newPassword) {
+        String checkUserSql = "SELECT id FROM users WHERE username = ?";
+        String updatePasswordSql = "UPDATE users SET password = ? WHERE username = ?";
+        
+        try (Connection conn = DriverManager.getConnection(driverURL)) {
+            // First, check if user exists
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkUserSql)) {
+                checkStmt.setString(1, username);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return false; // User doesn't exist
+                    }
+                }
+            }
+            
+            // Hash the new password
+            String hashedPassword = PasswordUtils.createHash(newPassword.toCharArray());
+            
+            // Update the password
+            try (PreparedStatement updateStmt = conn.prepareStatement(updatePasswordSql)) {
+                updateStmt.setString(1, hashedPassword);
+                updateStmt.setString(2, username);
+                int rowsAffected = updateStmt.executeUpdate();
+                return rowsAffected > 0;
+            }
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean userExists(String username) {
+        String sql = "SELECT id FROM users WHERE username = ?";
+        
+        try (Connection conn = DriverManager.getConnection(driverURL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
     // Role-based data access methods
     
     public ArrayList<History> getHistoryByRole(String username, int userRole) {

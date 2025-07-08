@@ -21,6 +21,7 @@ public class Login extends javax.swing.JPanel {
         passwordFld = new javax.swing.JPasswordField(); // Converted this to Password field
         registerBtn = new javax.swing.JButton();
         loginBtn = new javax.swing.JButton();
+        forgotPasswordBtn = new javax.swing.JButton();
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -53,6 +54,14 @@ public class Login extends javax.swing.JPanel {
             }
         });
 
+        forgotPasswordBtn.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        forgotPasswordBtn.setText("Forgot Password?");
+        forgotPasswordBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                forgotPasswordBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -66,7 +75,8 @@ public class Login extends javax.swing.JPanel {
                         .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(usernameFld)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(passwordFld, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(passwordFld, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(forgotPasswordBtn, javax.swing.GroupLayout.Alignment.LEADING))
                 .addContainerGap(200, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -79,6 +89,8 @@ public class Login extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(passwordFld, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(forgotPasswordBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(registerBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -129,6 +141,11 @@ public class Login extends javax.swing.JPanel {
         frame.registerNav();
     }//GEN-LAST:event_registerBtnActionPerformed
 
+    private void forgotPasswordBtnActionPerformed(java.awt.event.ActionEvent evt) {
+        ForgotPasswordDialog dialog = new ForgotPasswordDialog(frame, frame.main.sqlite);
+        dialog.setVisible(true);
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
@@ -136,5 +153,6 @@ public class Login extends javax.swing.JPanel {
     private javax.swing.JPasswordField passwordFld; // Converted this to Password field
     private javax.swing.JButton registerBtn;
     private javax.swing.JTextField usernameFld;
+    private javax.swing.JButton forgotPasswordBtn; // Added for password reset
     // End of variables declaration//GEN-END:variables
 }

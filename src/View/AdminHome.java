@@ -46,19 +46,17 @@ public class AdminHome extends javax.swing.JPanel {
         Content.add(this.mgmtProduct, "mgmtProduct");
         Content.add(this.mgmtLogs, "mgmtLogs");
         
-        // manage button visibility depending on role
-        configureStaffRoleAccess();
+        configureAdminAccess();
     }
     
-     // manage button visibility depending on role and their access permissions
-    private void configureStaffRoleAccess() {
-        usersBtn.setVisible(RoleManager.canManageUsers(RoleManager.STAFF));
-        productsBtn.setVisible(RoleManager.canViewProducts(RoleManager.STAFF));
-        productsBtn.setText("PRODUCTS CATALOG");
-        historyBtn.setVisible(RoleManager.canViewHistory(RoleManager.STAFF));
-        historyBtn.setText("SALES HISTORY");
-        logsBtn.setVisible(RoleManager.canViewLogs(RoleManager.STAFF));
-        logsBtn.setText("OPERATIONAL LOGS");
+    private void configureAdminAccess() {
+        usersBtn.setVisible(RoleManager.canManageUsers(RoleManager.ADMIN));
+        productsBtn.setVisible(RoleManager.canViewProducts(RoleManager.ADMIN));
+        productsBtn.setText("PRODUCTS");
+        historyBtn.setVisible(RoleManager.canViewHistory(RoleManager.ADMIN));
+        historyBtn.setText("HISTORY");
+        logsBtn.setVisible(RoleManager.canViewLogs(RoleManager.ADMIN));
+        logsBtn.setText("LOGS");
     }
     
     public void showPnl(String panelName){
